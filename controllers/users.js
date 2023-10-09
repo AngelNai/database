@@ -1,17 +1,18 @@
 const{request, response}=require('express')
-const connection = requiere('../db');
-const userslist=(req=request,res=response)=>{
+const connection = require('../db');
+const usersList=(req=request,res=response)=>{
     try{
-        connection.connect(async(err)=>{
+        connection.connect((err)=>{
             if(err){
                 throw new Error(err);
             }else{
-                const users= await connection.execute('SELECT * FROM users',(err)=>{
+                connection.execute('SELECT * FROM users',(err, users)=>{
                     if(err){
                         throw new Error(err);
                     }
+                    res.json(users)
+
                 })
-                res.json(users)
             }
         })
     }catch (err){
@@ -20,7 +21,7 @@ const userslist=(req=request,res=response)=>{
         connection.end();
     }
 }
-module.exports={userslist};    
+module.exports={usersList};    
 
 
 

@@ -1,27 +1,35 @@
-const express= require('express');
-const usersRouter=require('./routes/users');
+const express = require('express');
+const usersRouter = require('./routes/users')
+class Server {
+    constructor() {
+        this.app = express(); // Se instancia Express
+        this.port = 3000; //Definimos el puerto
 
-class Server{
-    constructor(){
-        this.app=express();
-        this.port=3000;
-//http://localhost:3000/api/v1/users
-        this.basePath='/api/v1';
-        this.usersPath=`${this.basePath}/users`;
+        //Paths     http://localhost:3000/api/v1
+        this.basePath = '/api/v1'; //Ruta Base 
 
-        this.middlewares();
-        this.routes();
+        this.usersPath = `${this.basePath}/users`; //Path para la tabla users
+        
+
+        this.middlewares(); //Invocacion de los middlewares
+
+        this.routes(); //Invocacion de las rutas
     }
+
+    
     middlewares(){
-        this.app.use(express.json());
+        this.app.use(express.json()); //Para poder interpretar texto en formato JSON
     }
+
     routes(){
-        this.app.use(this.usersPath,usersRouter);
+        this.app.use(this.usersPath, usersRouter); //EndPoint de Users
     }
+
     listen(){
-        this.app.listen(this.port,()=>{
-            console.log("Listening on port " + this.port)
-        })
+        this.app.listen(this.port,() => {
+            console.log("Server listening on port" +this.port)
+        });
     }
 }
-module.exports=Server;
+
+module.exports = Server;
