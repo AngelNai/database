@@ -1,17 +1,18 @@
-const usersModel={
-    getAll:`
-    SELECT 
-    *
-    FROM
-    users
-`,
-getByID: `
-SELECT
-*
-FROM
-users
-WHERE
-id=?
-`,
+const usersModel = {
+    getAll: `
+    SELECT
+        *
+    FROM 
+       users    
+       `,
+
+       getByID: `
+       SELECT
+          *
+       FROM
+          users
+        WHERE
+          id=?
+       `,
 };
-module.exports=usersModel;
+module.exports = usersModel;

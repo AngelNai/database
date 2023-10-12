@@ -1,58 +1,58 @@
-const{request, response}=require('express');
-const usersModel=require('../models/users');
-require('dotenv').config();
-
+const{request, response}=require('express')
+const usersModel = require('../models/users')
 const pool = require('../db');
-const usersList=async (req=request,res=response)=>{
-    
+
+const usersList= async (req=request,res=response)=>{
     let conn;
     try{
-conn=await pool.getConnection();
-
-
-        const users =await conn.query(usersModel.getAll,(err)=>{
-            if(err){
-                throw new Error(err);
-            }
-        })
-        res.json(users);
-    }catch (error){
+       conn = await pool.getConnection();
+    
+       const users = await conn.query(usersModel.getAll,(err) => {
+        if(err){
+           throw new Error(err);
+        }
+       })
+res.json(users);
+    }catch (err){
         console.log(error);
         res.status(500).json(error);
     }finally{
-        if(conn) conn.end();
+        if (conn) conn.end();
     }
 }
-const listUserByID =async (req=request,res=response)=>{
-    const{id}=req.params;
-    if(isNaN(id)){
-        res.status(400).json({msg:'invalid ID'});
+
+const listUserByID= async (req=request,res=response)=>{
+    const{id} = req.params;
+
+    if (isNaN(id)){
+        res.status(400).json({msg:'Invalid ID'});
         return;
     }
+
     let conn;
     try{
-conn=await pool.getConnection();
-
-
-        const user =await conn.query(usersModel.getByID,[id],(err)=>{
-            if(err){
-                throw new Error(err);
-            }
-        })
-        if(!user){
-            res.status(404).json({msg:'User not found'});
-            return;
+       conn = await pool.getConnection();
+    
+       const [user] = await conn.query(usersModel.getByID, [id] ,(err) => {
+        if(err){
+           throw new Error(err);
         }
-        res.json(user);
-    }catch (error){
+       })
+
+       if (!user){
+        res.status(404).json({msg:"User not found"});
+        return;
+       }
+
+res.json(user);
+    }catch (err){
         console.log(error);
         res.status(500).json(error);
     }finally{
-        if(conn) conn.end();
+        if (conn) conn.end();
     }
 }
-module.exports={usersList,listUserByID};    
-
+module.exports={usersList, listUserByID};
 
 
 
