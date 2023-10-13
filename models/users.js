@@ -16,7 +16,7 @@ const usersModel = {
        `, 
        addRow:`
 INSERT INTO
-Users(
+users(
    username,
    email,
    password,
@@ -31,5 +31,18 @@ VALUES(
    ?,?,?,?,?,?,?,?
 )
        `,
+       getByUsername:   `
+       SELECT
+       id
+       FROM
+       Users
+       WHERE username = ?`,
+       getByEmail:`
+       SELECT 
+       id
+       FROM
+       Users
+       WHERE
+       email = ?`
 };
 module.exports = usersModel;
