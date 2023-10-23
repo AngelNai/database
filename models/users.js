@@ -43,6 +43,29 @@ VALUES(
        FROM
        Users
        WHERE
-       email = ?`
+       email = ?`,
+       DeleteRow:`
+    UPDATE 
+    users
+    SET
+    is_active =0
+    WHERE 
+    id=?
+    `,
+    modUser: `
+    UPDATE 
+        users
+    SET
+        username = ?,
+        email = ?,
+        password = ?,
+        name = ?,
+        lastname = ?,
+        phone_number = ?,
+        role_id = ?,
+        is_active = 1
+    WHERE
+        id = ?`
+
 };
 module.exports = usersModel;
