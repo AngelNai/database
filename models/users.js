@@ -33,7 +33,7 @@ VALUES(
        `,
        getByUsername:   `
        SELECT
-       id
+       *
        FROM
        Users
        WHERE username = ?`,
@@ -52,7 +52,7 @@ VALUES(
     WHERE 
     id=?
     `,
-    modUser: `
+    updateRow: `
     UPDATE 
         users
     SET
@@ -63,7 +63,7 @@ VALUES(
         lastname = ?,
         phone_number = ?,
         role_id = ?,
-        is_active = 1
+        is_active = ?
     WHERE
         id = ?`
 

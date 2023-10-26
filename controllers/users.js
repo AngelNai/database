@@ -1,4 +1,5 @@
 const{request, response}=require('express')
+//const bcrypt =require('bcrypt');
 const usersModel = require('../models/users')
 const pool = require('../db');
 
@@ -68,6 +69,9 @@ const addUser = async(req=request,res=response)=>{
         res.status(400).json({msg:'Missing information'});
         return;
     }
+    const saltRounds=10;
+    const passwordHash = await bcrypt.hash(password,saltRounds);
+
     const user =[ username, email, password, name, lastname, phone_number, role_id, is_active]
 
     
@@ -138,78 +142,144 @@ const deleteUsers = async (req, res)=>{
     }
 }
        
-const modifyUser = async (req = request, res = response) => {
+const updateUser = async(req=request,res=response)=>{
     const {
+   username,
+   email,
+   password,
+   name,
+   lastname,
+   phone_number,
+   role_id,
+   is_active
+    } = req.body;
+
+    const {id}=req.params;
+    let passwordHash;
+    if(password){
+        const saltRounds=10;
+         passwordHash=await bcrypt.hash(password,saltRounds);
+
+    }
+    let newUserData=[
         username,
         email,
         password,
         name,
         lastname,
-        phone_number = '',
+        phone_number,
         role_id,
-        is_active = 1
-    } = req.body;
-    
-    if (!username || !email || !password || !name || !lastname || !role_id) {
-        res.status(400).json({msg: 'Missing information'});
-        return
-    }
-
-    const user =[
-        username, email, password, name, lastname, phone_number, role_id, is_active];
-
+        is_active
+    ]
     let conn;
 
-    try {
-        conn = await pool.getConnection();
-
-    const {id} =req.params;
-    const [userExists] =await conn.query(
-        usersModel.getByID,[id],
-        (err) => {if (err) throw err;}
-    );
-    if(!userExists || userExists.is_active === 0){
-        res.status(404).json({msg:'User not Found'});
-        return;
-    }
-        const [usernameUser] = await conn.query(
-            usersModel.getByUsername,
-            [username],
+    try{
+conn = await pool.getConnection();
+        const {id} =req.params;
+        const [userExists] =await conn.query(
+            usersModel.getByID,
+            [id],
             (err) => {if (err) throw err;}
         );
-        if (usernameUser) {
-            res.status(409).json({msg: `User with username ${username} already exists`});
+        if(!userExists || userExists.is_active === 0){
+            res.status(404).json({msg:'User not Found'});
             return;
+        }   
+        const [usernameUser] = await conn.query(usersModel.getByUsername,[username],(err)=>{
+            if(err) throw err;
         }
-
-        const [emailUser] = await conn.query(
-            usersModel.getByEmail,
-            [email],
-            (err) => {if (err) throw err;}
         );
-        if (emailUser) {
-            res.status(409).json({msg: `User with email ${email} already exists`});
+        if (usernameUser){
+            res.status(409).json({msg:`User whith username ${username} alreadys exits`});
             return;
         }
-
-        const userModified = await conn.query(
-            usersModel.modUser,
-            [...user, id], 
-            (err) => {if (err) throw err;}
-        )
-
-        if (userModified.affectedRows === 0) throw new Error ({msg: 'Failed to modify user'});
         
-        res.json({msg:'User modified succesfully'});
-    } catch (error) {
-        console.log(error);
-        res.status(500).json(error);
-    } finally {
-        if (conn) conn.end();
+        const [emailUser] = await conn.query(usersModel.getByEmail,[email],(err)=>{
+            if(err) throw err;
+        }
+        );
+        if (emailUser){
+            res.status(409).json({msg:`User whith email ${email} alreadys exits`});
+            return;
+        }
+    
+     const oldUserData=[
+userExists.username,
+userExists.email,
+userExists.password,
+userExists.name,
+userExists.lastname,
+userExists.phone_number,
+userExists.role_id,
+userExists.is_active
+
+     ];
+
+     newUserData.forEach((UserData, index) => {
+        if(!userData){
+            newUserData[index]=oldUserData[index];
+
+        }
+     
+    });
+
+    const userUpdated=await conn.query(
+        usersModel.updateRow,[...newUserData,id],
+        (err)=>{if(err) throw err;}
+
+    );
+    if(userUpdated.affecteRows===0){
+        throw new Error('User not updated');
+    
     }
+res.json({msg:'user updated succesfully'});
+}catch(error){
+    console.log(error);
+    res.status(500).json(error);
+
+}finally{
+   if(conn) conn.end(); 
+}
 }
 
-module.exports={usersList, listUserByID, addUser,deleteUsers, modifyUser };
+const sigIn =async(req =request, res=response)=>{
+    let conn;
+    const{username,password}=req.body;
+    if(!username||!password){
+        res.status(400).json({msg:'username and password are requerid'});
+        return;
+    }
+    try{
+
+    conn=await pool.getConnection();
+    const[user]=await conn.query(usersModel.getByUsername,[username],(err)=>{if(err)throw err;}
+    )
+    if(!user||user.is_active===0){
+        res.status(404).json({msg:' user not fount   '})
+        return;
+
+    }
+    const passwordOk=bcrypt.compare(password, user.password);
+    if(!passwordOk){
+        res.status(400).json({msg:'wrong username or password'});
+return;
+
+    }
+    delete user.password;
+    delete user.created_at;
+    delete user.updated_at;
+res.json(user);
+}catch(error){
+    console.log(error);
+    res.status(500).json(error);
+}finally{
+    if(conn) conn.end();
+
+}}
+
+
+module.exports={usersList, listUserByID, addUser,deleteUsers, updateUser,sigIn};
+
 
 
 
